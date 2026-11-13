@@ -4,7 +4,7 @@ on:
   schedule:
     # Every 3 hours at :17 past (UTC). GitHub may start scheduled runs a few minutes late.
     # For hourly, use: "17 * * * *"
-    - cron: "17 */3 * * *"
+    - cron: "7 */3 * * *"
   workflow_dispatch: {}  # lets you click "Run workflow" manually
 
 permissions:
