@@ -1,7 +1,8 @@
 """One collection run: search every route x departure date once and record prices.
 
 Usage:
-    python run.py              # search and write to Google Sheets + CSV backup
+    python run.py              # search, save CSVs, rebuild output/flight_prices.xlsx
+                               # (also writes to Google Sheets if credentials are set)
     python run.py --dry-run    # search and print/CSV only, no Google Sheets
     python run.py --limit 2    # only search the first 2 dates per route (quick test)
 """
@@ -9,14 +10,17 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import csv
 import random
 import sys
 import time
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import config
 from tracker.scrape import FetchError, search
+from tracker.excel import build_workbook
 from tracker.sheets import RUN_LOG_HEADER, append_csv, writer_from_env
 
 
@@ -54,8 +58,6 @@ def main():
         return
 
     writer = None if args.dry_run else writer_from_env()
-    if writer is None and not args.dry_run:
-        print("SPREADSHEET_ID / GOOGLE_SERVICE_ACCOUNT_JSON not set; writing CSV only.", file=sys.stderr)
 
     ok, failed, total_rows = 0, [], 0
     for origin, dest in config.ROUTES:
@@ -84,6 +86,16 @@ def main():
 
     summary = [obs_date.isoformat(), obs_time, ok, len(failed), total_rows, "; ".join(failed)]
     print(f"Done: {ok} searches ok, {len(failed)} failed, {total_rows} rows.")
+    log_path = Path(config.CSV_BACKUP_DIR) / "run_log.csv"
+    new_log = not log_path.exists()
+    with log_path.open("a", newline="") as f:
+        w = csv.writer(f)
+        if new_log:
+            w.writerow(RUN_LOG_HEADER)
+        w.writerow(summary)
+    n = build_workbook(config.CSV_BACKUP_DIR, config.EXCEL_FILE,
+                       [f"{o}-{d}" for o, d in config.ROUTES])
+    print(f"Wrote {config.EXCEL_FILE} ({n} rows total).")
     if writer:
         try:
             writer.append(config.RUN_LOG_TAB, [summary], header=RUN_LOG_HEADER, price_col=False)

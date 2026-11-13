@@ -45,3 +45,21 @@ def test_parse():
 def test_no_flights():
     html = '<script class="ds:1">AF_initDataCallback({key: \'ds:1\', data:errorHasStatus: true, x: 1});</script>'
     assert extract_payload(html) == []
+
+
+def test_excel(tmp_path):
+    from openpyxl import load_workbook
+
+    from tracker.excel import build_workbook
+    from tracker.sheets import append_csv
+
+    append_csv(tmp_path, "2026-11", [
+        ["2026-11-13", "17:13", "UA123_2026-12-03", "United", "SFO", "JFK", "2026-12-03", 20, 325],
+        ["2026-11-13", "17:13", "DL1_2026-12-03", "Delta", "ATL", "MCO", "2026-12-03", 20, 99],
+    ])
+    out = tmp_path / "out.xlsx"
+    assert build_workbook(str(tmp_path), str(out), ["SFO-JFK", "ATL-MCO"]) == 2
+    wb = load_workbook(out)
+    assert wb.sheetnames == ["SFO-JFK", "ATL-MCO", "run_log"]
+    row = [c.value for c in wb["SFO-JFK"][2]]
+    assert row[2] == "UA123_2026-12-03" and row[7] == 20 and row[8] == 325

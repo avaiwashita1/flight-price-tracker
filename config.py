@@ -32,5 +32,6 @@ MAX_ATTEMPTS = 3                     # attempts per search before giving up
 RETRY_BACKOFF_SECONDS = 15           # wait 15s, then 30s, ... between attempts
 
 # Output
-CSV_BACKUP_DIR = "data"     # every row is also appended to a monthly CSV here
-RUN_LOG_TAB = "run_log"     # spreadsheet tab with one line per run (success/failure counts)
+CSV_BACKUP_DIR = "data"     # every row is appended to a monthly CSV here (the master copy)
+EXCEL_FILE = "output/flight_prices.xlsx"  # rebuilt from the CSVs after every run
+RUN_LOG_TAB = "run_log"     # tab with one line per run (success/failure counts)
