@@ -17,6 +17,19 @@ class FetchError(Exception):
     """The page could not be fetched or did not contain flight data (blocked, captcha, layout change)."""
 
 
+class EmptyResults(FetchError):
+    """The page loaded but listed no flights. On busy routes this means an incomplete page; retry."""
+
+
+def _shape(obj, depth=2):
+    """Short description of a nested list's structure, for diagnostics."""
+    if isinstance(obj, list):
+        if depth == 0:
+            return f"list[{len(obj)}]"
+        return "[" + ", ".join(_shape(x, depth - 1) for x in obj[:10]) + (", ..." if len(obj) > 10 else "") + "]"
+    return type(obj).__name__ if obj is not None else "None"
+
+
 @dataclass
 class FlightPrice:
     flight_id: str        # e.g. UA123_2026-12-03
@@ -120,4 +133,11 @@ def search(origin: str, destination: str, departure_date: str, *, nonstop_only=T
     except Exception as e:
         raise FetchError(f"request failed: {e}") from e
     payload = extract_payload(html)
-    return parse_flights(payload, origin, destination, departure_date, nonstop_only)
+    flights = parse_flights(payload, origin, destination, departure_date, nonstop_only)
+    if not flights:
+        title = LexborHTMLParser(html).css_first("title")
+        raise EmptyResults(
+            f"0 flights; html={len(html)} chars, title={title.text() if title else None!r}, "
+            f"payload={_shape(payload)}"
+        )
+    return flights
