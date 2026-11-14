@@ -65,7 +65,7 @@ def main():
             if not pending:
                 break
             print(f"Retry pass {attempt}: {len(pending)} searches")
-            time.sleep(config.RETRY_BACKOFF_SECONDS)
+            time.sleep(min(config.RETRY_BACKOFF_SECONDS * (attempt - 1), 120))
         still_failing = []
         for origin, dest, dep in pending:
             flights = try_search(origin, dest, dep.isoformat(), attempt)

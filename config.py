@@ -28,8 +28,8 @@ TIMEZONE = "America/Los_Angeles"
 
 # Politeness and reliability
 DELAY_BETWEEN_SEARCHES = (1.5, 3.5)  # random pause in seconds between searches
-MAX_ATTEMPTS = 5                     # passes over failed searches before giving up
-RETRY_BACKOFF_SECONDS = 20           # pause before each retry pass
+MAX_ATTEMPTS = 8                     # passes over failed searches before giving up
+RETRY_BACKOFF_SECONDS = 20           # pause before retry pass n is 20s * (n-1), capped at 2 min
 
 # Output
 CSV_BACKUP_DIR = "data"     # every row is appended to a monthly CSV here (the master copy)
