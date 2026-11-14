@@ -1,6 +1,6 @@
 # Flight Price Tracker
 
-Collects the cheapest **nonstop, one-way, economy** fare (USD, 1 adult) for every flight on 5 routes, for every departure date in the next 21 days. It runs every 3 hours on GitHub Actions (free). The output is an **Excel file** with one tab per route. No Google Cloud or other accounts are needed.
+Collects the cheapest **nonstop, one-way, economy** fare (USD, 1 adult) for every flight on 5 routes, for every departure date in the next 21 days. It runs every 3 hours on GitHub Actions (free), started by a free cron-job.org job (GitHub's own scheduler skipped most runs). The output is an **Excel file** with one tab per route. No Google Cloud or other accounts are needed.
 
 Prices come from Google Flights through the open-source [`fast-flights`](https://github.com/AWeirdDev/fast-flights) library. There's no API key and no cost.
 
@@ -22,13 +22,15 @@ Each run's Excel file contains *all* data collected so far, so you only ever nee
 
 **Raw CSVs:** every row is also saved in `data/observations_YYYY-MM.csv` in the repo itself. This is the permanent master copy. The Excel file is rebuilt from it each run.
 
-## Setup
-None. The schedule starts automatically once this is on GitHub. To start a run now: **Actions** tab → **Collect flight prices** → **Run workflow**.
+## Scheduling
+A cron-job.org job sends `POST https://api.github.com/repos/avaiwashita1/flight-price-tracker/actions/workflows/collect.yml/dispatches` with body `{"ref":"main"}` every 3 hours. It authenticates with a fine-grained GitHub token (Actions: read and write, this repo only). When the token expires, runs stop; create a new token and paste it into the cron-job.org job's `Authorization` header.
+
+To start a run by hand: **Actions** tab → **Collect flight prices** → **Run workflow**. To stop collecting, disable the cron-job.org job.
 
 ## Configuration (`config.py`)
 - `ROUTES`: the routes to track
 - `FIRST_DEPARTURE_DATE` / `LAST_DEPARTURE_DATE` / `LOOKAHEAD_DAYS`: the departure-date window
-- Schedule: edit the `cron` line in `.github/workflows/collect.yml` (`"17 * * * *"` = hourly)
+- Schedule: change it in the cron-job.org job
 
 ## Run locally
 ```bash

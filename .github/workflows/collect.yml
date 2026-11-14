@@ -1,11 +1,10 @@
 name: Collect flight prices
 
 on:
-  schedule:
-    # Every 3 hours at :17 past (UTC). GitHub may start scheduled runs a few minutes late.
-    # For hourly, use: "17 * * * *"
-    - cron: "7 */3 * * *"
-  workflow_dispatch: {}  # lets you click "Run workflow" manually
+  # Started every 3 hours by an external scheduler (cron-job.org) calling the
+  # workflow_dispatch API, because GitHub's own schedule skipped most runs.
+  # You can also start a run by hand from the Actions tab.
+  workflow_dispatch: {}
 
 permissions:
   contents: write  # to commit the CSV backup
